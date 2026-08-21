@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAN KILLER - MIDI Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ff0000;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .song-info {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ff0000;
+        }
+
+        .song-info h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .emotion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .emotion-tag {
+            background: #ff0000;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .settings {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .setting-group input,
+        .setting-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .setting-group input:focus,
+        .setting-group select:focus {
+            outline: none;
+            border-color: #ff0000;
+        }
+
+        .range-display {
+            display: inline-block;
+            background: #ff0000;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 0, 0, 0.4);
+        }
+
+        .btn-download:active {
+            transform: translateY(0);
+        }
+
+        .btn-all {
+            background: #333;
+            color: white;
+        }
+
+        .btn-all:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #ff0000;
+        }
+
+        .spinner {
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #ff0000;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chord-display {
+            background: #333;
+            color: #ff0000;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #856404;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .emotion-tags {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 MAN KILLER 🔥</h1>
+            <p>Professional Afrobeats MIDI Generator</p>
+            <p>Reference: Dog Eat Dog by Odumodú Black</p>
+        </div>
+
+        <div class="song-info">
+            <h2>🎵 Track Specifications</h2>
+            <div class="info-row">
+                <span class="info-label">Key:</span>
+                <span class="info-value">A Minor</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">BPM:</span>
+                <span class="info-value">113</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Progression:</span>
+                <span class="info-value">Am-F-C-G-Am-E-F-G</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Time Signature:</span>
+                <span class="info-value">4/4</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Mood:</span>
+                <span class="info-value">Dark, Intense, Emotional</span>
+            </div>
+            <div class="emotion-tags">
+                <span class="emotion-tag">💔 Heartbreak</span>
+                <span class="emotion-tag">❤️ Passion</span>
+                <span class="emotion-tag">💪 Strength</span>
+                <span class="emotion-tag">😔 Longing</span>
+                <span class="emotion-tag">🔥 Anger</span>
+            </div>
+        </div>
+
+        <div class="settings">
+            <h3 style="margin-bottom: 15px; color: #333;">⚙️ Settings</h3>
+
+            <div class="setting-group">
+                <label for="bars">
+                    Number of Bars
+                    <span class="range-display" id="barsValue">16</span>
+                </label>
+                <input type="range" id="bars" min="4" max="64" value="16" step="2" onchange="updateValue('bars', 'barsValue')">
+                <small style="color: #999;">Default: 16 bars (2 full loops)</small>
+            </div>
+
+            <div class="setting-group">
+                <label for="velocity">
+                    Volume/Velocity
+                    <span class="range-display" id="velocityValue">85</span>
+                </label>
+                <input type="range" id="velocity" min="40" max="127" value="85" step="1" onchange="updateValue('velocity', 'velocityValue')">
+                <small style="color: #999;">Range: 40 (soft) - 127 (loud)</small>
+            </div>
+
+            <div class="setting-group">
+                <label for="filename">Filename</label>
+                <input type="text" id="filename" value="MAN_KILLER_Chords.mid" placeholder="Enter filename">
+            </div>
+
+            <div class="chord-display">
+                Am → F → C → G → Am → E → F → G
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating MIDI...</p>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-download" onclick="generateChordProgression()">
+                📥 DOWNLOAD CHORDS
+            </button>
+        </div>
+
+        <div class="buttons" style="margin-bottom: 0;">
+            <button class="btn btn-all" onclick="generateBassLine()" title="Generate bass line">
+                🔊 BASS LINE
+            </button>
+            <button class="btn btn-all" onclick="generateMelody()" title="Generate melody">
+                🎸 MELODY
+            </button>
+            <button class="btn btn-all" onclick="generateAll()" title="Generate all components">
+                🎵 ALL FILES
+            </button>
+        </div>
+
+        <div class="info-box">
+            💡 <strong>Tip:</strong> Download the MIDI files and drag them into FL Studio, Ableton, Logic Pro, or any DAW to start producing!
+        </div>
+    </div>
+
+    <script>
+        // MIDI Generator Class
+        class MIDIGenerator {
+            constructor(tempo = 113) {
+                this.tempo = tempo;
+                this.ticksPerBeat = 480;
+                this.trackData = [];
+            }
+
+            encodeVariableLength(value) {
+                let result = [];
+                result.push(value & 0x7F);
+                value >>= 7;
+                while (value) {
+                    result.push((value & 0x7F) | 0x80);
+                    value >>= 7;
+                }
+                return result.reverse();
+            }
+
+            addTempo() {
+                const microseconds = Math.round(60000000 / this.tempo);
+                this.trackData.push(0x00, 0xFF, 0x51, 0x03);
+                this.trackData.push(
+                    (microseconds >> 16) & 0xFF,
+                    (microseconds >> 8) & 0xFF,
+                    microseconds & 0xFF
+                );
+            }
+
+            addProgramChange(program = 0) {
+                this.trackData.push(0x00, 0xC0, program);
+            }
+
+            addChord(notes, velocity = 85, duration = 960) {
+                for (let note of notes) {
+                    this.trackData.push(0x00, 0x90, note, velocity);
+                }
+                this.trackData.push(...this.encodeVariableLength(duration));
+                for (let note of notes) {
+                    this.trackData.push(0x80, note, 0);
+                }
+            }
+
+            addNote(note, velocity = 100, duration = 480) {
+                this.trackData.push(0x00, 0x90, note, velocity);
+                this.trackData.push(...this.encodeVariableLength(duration));
+                this.trackData.push(0x80, note, 0);
+            }
+
+            addEndOfTrack() {
+                this.trackData.push(0x00, 0xFF, 0x2F, 0x00);
+            }
+
+            getMidiBytes() {
+                let midiData = [];
+
+                // Header
+                midiData.push(...'MThd'.split('').map(c => c.charCodeAt(0)));
+                midiData.push(0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01);
+                midiData.push((this.ticksPerBeat >> 8) & 0xFF, this.ticksPerBeat & 0xFF);
+
+                // Track
+                midiData.push(...'MTrk'.split('').map(c => c.charCodeAt(0)));
+                const trackLength = this.trackData.length;
+                midiData.push(
+                    (trackLength >> 24) & 0xFF,
+                    (trackLength >> 16) & 0xFF,
+                    (trackLength >> 8) & 0xFF,
+                    trackLength & 0xFF
+                );
+                midiData.push(...this.trackData);
+
+                return new Uint8Array(midiData);
+            }
+        }
+
+        // Chord definitions
+        const chords = {
+            'Am': [45, 48, 52],
+            'F': [53, 57, 60],
+            'C': [48, 52, 55],
+            'G': [55, 59, 62],
+            'E': [52, 56, 59]
+        };
+
+        const progression = ['Am', 'F', 'C', 'G', 'Am', 'E', 'F', 'G'];
+
+        function generateChordProgression() {
+            const bars = parseInt(document.getElementById('bars').value);
+            const velocity = parseInt(document.getElementById('velocity').value);
+            const filename = document.getElementById('filename').value || 'MAN_KILLER_Chords.mid';
+
+            document.getElementById('loading').style.display = 'block';
+
+            setTimeout(() => {
+                const gen = new MIDIGenerator(113);
+                gen.addTempo();
+                gen.addProgramChange(0);
+
+                const halfNote = 960;
+
+                for (let bar = 0; bar < bars; bar++) {
+                    const chordName = progression[bar % 8];
+                    const chordNotes = chords[chordName];
+                    gen.addChord(chordNotes, velocity, halfNote);
+                }
+
+                gen.addEndOfTrack();
+                const midiData = gen.getMidiBytes();
+                downloadMIDI(midiData, filename);
+
+                document.getElementById('loading').style.display = 'none';
+                showStatus(`✅ Downloaded: ${filename}`, 'success');
+            }, 300);
+        }
+
+        function generateBassLine() {
+            const bars = parseInt(document.getElementById('bars').value);
+            const velocity = parseInt(document.getElementById('velocity').value);
+            const filename = 'MAN_KILLER_Bass.mid';
+
+            document.getElementById('loading').style.display = 'block';
+
+            setTimeout(() => {
+                const gen = new MIDIGenerator(113);
+                gen.addTempo();
+                gen.addProgramChange(33);
+
+                const bassNotes = {
+                    'Am': 33, 'F': 41, 'C': 36, 'G': 43, 'E': 40
+                };
+
+                for (let bar = 0; bar < bars; bar++) {
+                    const chordName = progression[bar % 8];
+                    const bassNote = bassNotes[chordName];
+                    for (let i = 0; i < 4; i++) {
+                        gen.addNote(bassNote, velocity, 480);
+                    }
+                }
+
+                gen.addEndOfTrack();
+                const midiData = gen.getMidiBytes();
+                downloadMIDI(midiData, filename);
+
+                document.getElementById('loading').style.display = 'none';
+                showStatus(`✅ Downloaded: ${filename}`, 'success');
+            }, 300);
+        }
+
+        function generateMelody() {
+            const bars = parseInt(document.getElementById('bars').value);
+            const velocity = parseInt(document.getElementById('velocity').value);
+            const filename = 'MAN_KILLER_Melody.mid';
+
+            document.getElementById('loading').style.display = 'block';
+
+            setTimeout(() => {
+                const gen = new MIDIGenerator(113);
+                gen.addTempo();
+                gen.addProgramChange(48);
+
+                const heartbreak = [69, 71, 72, 71, 69, 67, 65, 67];
+                const strength = [76, 77, 76, 74, 76, 77, 79, 81];
+
+                for (let bar = 0; bar < bars; bar++) {
+                    const melody = bar % 8 < 4 ? heartbreak : strength;
+                    for (let note of melody) {
+                        gen.addNote(note, velocity, 240);
+                    }
+                }
+
+                gen.addEndOfTrack();
+                const midiData = gen.getMidiBytes();
+                downloadMIDI(midiData, filename);
+
+                document.getElementById('loading').style.display = 'none';
+                showStatus(`✅ Downloaded: ${filename}`, 'success');
+            }, 300);
+        }
+
+        function generateAll() {
+            generateChordProgression();
+            setTimeout(() => generateBassLine(), 500);
+            setTimeout(() => generateMelody(), 1000);
+        }
+
+        function downloadMIDI(midiData, filename) {
+            const blob = new Blob([midiData], { type: 'audio/midi' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showStatus(message, type) {
+            const el = document.getElementById('status');
+            el.textContent = message;
+            el.className = `status ${type}`;
+            setTimeout(() => el.style.display = 'none', 4000);
+        }
+
+        function updateValue(inputId, displayId) {
+            document.getElementById(displayId).textContent = document.getElementById(inputId).value;
+        }
+    </script>
+</body>
+</html>
