@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dumebi MIDI Generator</title>
+    <title>Afro MIDI Generator</title>
     <style>
         * {
             margin: 0;
@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
@@ -46,41 +46,36 @@
             font-size: 14px;
         }
 
-        .song-info {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 8px;
-        }
-
-        .song-info h3 {
-            color: #333;
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-
-        .song-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 13px;
-            color: #555;
-        }
-
-        .detail-item {
+        .tabs {
             display: flex;
-            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
-        .detail-label {
+        .tab-button {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
             font-weight: 600;
-            color: #667eea;
-            margin-bottom: 2px;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
         }
 
-        .settings {
-            margin-bottom: 25px;
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .setting-group {
@@ -97,7 +92,8 @@
 
         .setting-group input[type="range"],
         .setting-group input[type="text"],
-        .setting-group input[type="number"] {
+        .setting-group input[type="number"],
+        .setting-group select {
             width: 100%;
             padding: 10px;
             border: 2px solid #e0e0e0;
@@ -106,12 +102,8 @@
             transition: border-color 0.3s;
         }
 
-        .setting-group input[type="range"] {
-            padding: 8px 10px;
-            cursor: pointer;
-        }
-
-        .setting-group input:focus {
+        .setting-group input:focus,
+        .setting-group select:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -130,7 +122,7 @@
         .buttons {
             display: flex;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-top: 25px;
         }
 
         .btn {
@@ -144,26 +136,26 @@
             transition: all 0.3s;
         }
 
-        .btn-generate {
+        .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
 
-        .btn-generate:hover {
+        .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-generate:active {
+        .btn-primary:active {
             transform: translateY(0);
         }
 
-        .btn-copy {
+        .btn-secondary {
             background: #f0f0f0;
             color: #333;
         }
 
-        .btn-copy:hover {
+        .btn-secondary:hover {
             background: #e0e0e0;
         }
 
@@ -188,12 +180,11 @@
             display: block;
         }
 
-        .drag-info {
+        .info-box {
             background: #e3f2fd;
-            border: 2px dashed #2196F3;
+            border: 2px solid #2196F3;
             padding: 15px;
             border-radius: 8px;
-            text-align: center;
             font-size: 13px;
             color: #1565c0;
             margin-top: 20px;
@@ -220,11 +211,13 @@
             100% { transform: rotate(360deg); }
         }
 
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #999;
-            margin-top: 20px;
+        .chord-preview {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #555;
         }
 
         @media (max-width: 500px) {
@@ -236,6 +229,15 @@
                 font-size: 24px;
             }
 
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
             .buttons {
                 flex-direction: column;
             }
@@ -245,179 +247,296 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎵 Dumebi MIDI Generator</h1>
-            <p>By Rema | F# minor | 105 BPM</p>
+            <h1>🎵 Afro MIDI Generator</h1>
+            <p>Generate MIDI files instantly for FL Studio</p>
         </div>
 
-        <div class="song-info">
-            <h3>Song Information</h3>
-            <div class="song-details">
-                <div class="detail-item">
-                    <span class="detail-label">Key</span>
-                    <span>F# minor</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Tempo</span>
-                    <span>105 BPM</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Pattern</span>
-                    <span>F# A B C#</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Instrument</span>
-                    <span>Bass</span>
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('dumebi')">🔊 Dumebi Bass</button>
+            <button class="tab-button" onclick="switchTab('chords')">🎹 Chord Progression</button>
+        </div>
+
+        <!-- DUMEBI TAB -->
+        <div id="dumebi" class="tab-content active">
+            <div class="setting-group">
+                <label>Song: Dumebi by Rema</label>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 13px; color: #555;">
+                    Key: F# minor | Tempo: 105 BPM | Pattern: F# A B C#
                 </div>
             </div>
-        </div>
 
-        <div class="settings">
             <div class="setting-group">
-                <label for="bars">
+                <label for="dumebi-bars">
                     Number of Bars
-                    <span class="range-value" id="barsValue">8</span>
+                    <span class="range-value" id="dumebi-barsValue">8</span>
                 </label>
-                <input type="range" id="bars" min="1" max="32" value="8" step="1">
+                <input type="range" id="dumebi-bars" min="1" max="32" value="8" step="1" onchange="updateValue('dumebi-bars', 'dumebi-barsValue')">
             </div>
 
             <div class="setting-group">
-                <label for="velocity">
+                <label for="dumebi-velocity">
                     Velocity (Volume)
-                    <span class="range-value" id="velocityValue">100</span>
+                    <span class="range-value" id="dumebi-velocityValue">100</span>
                 </label>
-                <input type="range" id="velocity" min="40" max="127" value="100" step="1">
+                <input type="range" id="dumebi-velocity" min="40" max="127" value="100" step="1" onchange="updateValue('dumebi-velocity', 'dumebi-velocityValue')">
             </div>
 
             <div class="setting-group">
-                <label for="filename">Filename</label>
-                <input type="text" id="filename" value="dumebi_bass.mid">
+                <label for="dumebi-filename">Filename</label>
+                <input type="text" id="dumebi-filename" value="dumebi_bass.mid">
+            </div>
+
+            <div class="status" id="dumebi-status"></div>
+
+            <div class="loading" id="dumebi-loading">
+                <div class="spinner"></div>
+                <p>Generating MIDI...</p>
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-primary" onclick="generateDumebi()">Generate MIDI</button>
+                <button class="btn btn-secondary" onclick="copyToClipboard('dumebi')">📋 Copy</button>
+            </div>
+
+            <div class="info-box">
+                💡 <strong>Drag & Drop:</strong> Drag the downloaded file directly into FL Studio!
             </div>
         </div>
 
-        <div class="status" id="status"></div>
+        <!-- CHORD PROGRESSION TAB -->
+        <div id="chords" class="tab-content">
+            <div class="setting-group">
+                <label for="chord-key">Key</label>
+                <select id="chord-key">
+                    <option value="C">C Major</option>
+                    <option value="D">D Major</option>
+                    <option value="E">E Major</option>
+                    <option value="F">F Major</option>
+                    <option value="G">G Major</option>
+                    <option value="A">A Major</option>
+                    <option value="B">B Major</option>
+                    <option value="Cm">C Minor</option>
+                    <option value="Dm">D Minor</option>
+                    <option value="Em">E Minor</option>
+                    <option value="Fm">F Minor</option>
+                    <option value="Gm">G Minor</option>
+                    <option value="Am">A Minor</option>
+                    <option value="Bm">B Minor</option>
+                </select>
+            </div>
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Generating MIDI file...</p>
-        </div>
+            <div class="setting-group">
+                <label for="chord-progression">Progression</label>
+                <select id="chord-progression">
+                    <option value="I-IV-V-I">I - IV - V - I (Classic)</option>
+                    <option value="I-V-vi-IV">I - V - vi - IV (Pop)</option>
+                    <option value="vi-IV-I-V">vi - IV - I - V (Sad)</option>
+                    <option value="I-IV-I-V">I - IV - I - V (Afrobeats)</option>
+                    <option value="ii-V-I">ii - V - I (Jazz)</option>
+                    <option value="I-vi-IV-V">I - vi - IV - V (Doo-wop)</option>
+                    <option value="custom">Custom Chords</option>
+                </select>
+            </div>
 
-        <div class="buttons">
-            <button class="btn btn-generate" onclick="generateMIDI()">Generate MIDI</button>
-            <button class="btn btn-copy" onclick="copyToClipboard()">📋 Copy</button>
-        </div>
+            <div class="setting-group">
+                <label for="chord-tempo">
+                    Tempo (BPM)
+                    <span class="range-value" id="chord-tempoValue">120</span>
+                </label>
+                <input type="range" id="chord-tempo" min="40" max="200" value="120" step="5" onchange="updateValue('chord-tempo', 'chord-tempoValue')">
+            </div>
 
-        <div class="drag-info">
-            💡 <strong>Drag & Drop:</strong> After generating, drag the downloaded file directly into FL Studio!
-        </div>
+            <div class="setting-group">
+                <label for="chord-bars">
+                    Number of Bars
+                    <span class="range-value" id="chord-barsValue">8</span>
+                </label>
+                <input type="range" id="chord-bars" min="1" max="32" value="8" step="1" onchange="updateValue('chord-bars', 'chord-barsValue')">
+            </div>
 
-        <div class="footer">
-            Made with ❤️ for producers | v1.0
+            <div class="setting-group">
+                <label for="chord-velocity">
+                    Velocity (Volume)
+                    <span class="range-value" id="chord-velocityValue">100</span>
+                </label>
+                <input type="range" id="chord-velocity" min="40" max="127" value="100" step="1" onchange="updateValue('chord-velocity', 'chord-velocityValue')">
+            </div>
+
+            <div class="chord-preview" id="chord-preview">
+                Preview: C Major - E Major - G Major
+            </div>
+
+            <div class="setting-group">
+                <label for="chord-filename">Filename</label>
+                <input type="text" id="chord-filename" value="chord_progression.mid">
+            </div>
+
+            <div class="status" id="chord-status"></div>
+
+            <div class="loading" id="chord-loading">
+                <div class="spinner"></div>
+                <p>Generating MIDI...</p>
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-primary" onclick="generateChordProgression()">Generate MIDI</button>
+                <button class="btn btn-secondary" onclick="copyToClipboard('chord')">📋 Copy</button>
+            </div>
+
+            <div class="info-box">
+                💡 <strong>Tip:</strong> Import into FL Studio and arrange chords on a piano roll!
+            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
-        // Update range values display
-        document.getElementById('bars').addEventListener('input', (e) => {
-            document.getElementById('barsValue').textContent = e.target.value;
-        });
-
-        document.getElementById('velocity').addEventListener('input', (e) => {
-            document.getElementById('velocityValue').textContent = e.target.value;
-        });
-
-        // Note mapping to MIDI numbers
-        const notes = {
-            'F#': 54,
-            'A': 57,
-            'B': 59,
-            'C#': 61,
+        // Note mapping
+        const noteMap = {
+            'C': 48, 'C#': 49, 'D': 50, 'D#': 51, 'E': 52, 'F': 53,
+            'F#': 54, 'G': 55, 'G#': 56, 'A': 57, 'A#': 58, 'B': 59
         };
 
-        // Dumebi bass pattern
-        const pattern = [
-            'F#', 'F#', 'A', 'B',
-            'F#', 'F#', 'C#', 'B'
-        ];
+        // Chord definitions
+        const chords = {
+            'C': [0, 4, 7],      // C E G
+            'Cm': [0, 3, 7],     // C Eb G
+            'D': [2, 6, 9],      // D F# A
+            'Dm': [2, 5, 9],     // D F A
+            'E': [4, 8, 11],     // E G# B
+            'Em': [4, 7, 11],    // E G B
+            'F': [5, 9, 12],     // F A C
+            'Fm': [5, 8, 12],    // F Ab C
+            'G': [7, 11, 14],    // G B D
+            'Gm': [7, 10, 14],   // G Bb D
+            'A': [9, 1, 5],      // A C# E
+            'Am': [9, 0, 4],     // A C E
+            'B': [11, 3, 7],     // B D# F#
+            'Bm': [11, 2, 6]     // B D F#
+        };
 
-        function generateMIDI() {
-            const numBars = parseInt(document.getElementById('bars').value);
-            const velocity = parseInt(document.getElementById('velocity').value);
-            const filename = document.getElementById('filename').value || 'dumebi_bass.mid';
-
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('status').style.display = 'none';
-
-            setTimeout(() => {
-                try {
-                    const midiData = createMIDI(numBars, velocity);
-                    downloadMIDI(midiData, filename);
-
-                    document.getElementById('loading').style.display = 'none';
-                    showStatus(`✅ MIDI file generated! (${numBars} bars)`, 'success');
-                } catch (error) {
-                    document.getElementById('loading').style.display = 'none';
-                    showStatus('❌ Error generating MIDI: ' + error.message, 'error');
-                }
-            }, 500);
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
         }
 
-        function createMIDI(numBars, velocity) {
-            const tempo = 105;
-            const microsPerBeat = Math.round(60000000 / tempo);
+        function updateValue(inputId, displayId) {
+            document.getElementById(displayId).textContent = document.getElementById(inputId).value;
+            if (inputId === 'chord-progression') {
+                updateChordPreview();
+            }
+        }
 
+        function updateChordPreview() {
+            const key = document.getElementById('chord-key').value;
+            const progression = document.getElementById('chord-progression').value;
+            const preview = `${key} - (progression preview)`;
+            document.getElementById('chord-preview').textContent = preview;
+        }
+
+        function createMIDI(midiEvents, tempo) {
+            const microsPerBeat = Math.round(60000000 / tempo);
             let midiData = [];
 
             // MIDI Header
-            midiData.push(...strToBytes('MThd'));
-            midiData.push(0, 0, 0, 6);
-            midiData.push(0, 0); // Format type 0
-            midiData.push(0, 1); // Number of tracks
-            midiData.push(0, 480); // Ticks per beat
+            midiData.push(...'MThd'.split('').map(c => c.charCodeAt(0)));
+            midiData.push(0, 0, 0, 6, 0, 0, 0, 1, 0, 480);
 
-            // MIDI Track
             let trackData = [];
-
-            // Set Tempo
             trackData.push(0, 0xFF, 0x51, 0x03);
-            trackData.push((microsPerBeat >> 16) & 0xFF);
-            trackData.push((microsPerBeat >> 8) & 0xFF);
-            trackData.push(microsPerBeat & 0xFF);
+            trackData.push((microsPerBeat >> 16) & 0xFF, (microsPerBeat >> 8) & 0xFF, microsPerBeat & 0xFF);
+            trackData.push(0, 0xC0, 33); // Program change
 
-            // Program Change to Bass (33)
-            trackData.push(0, 0xC0, 33);
+            // Add MIDI events
+            midiEvents.forEach(event => {
+                trackData.push(...event);
+            });
 
-            // Generate notes
-            for (let bar = 0; bar < numBars; bar++) {
-                for (let note of pattern) {
-                    const noteNum = notes[note];
-
-                    // Note On
-                    trackData.push(0, 0x90, noteNum, velocity);
-                    // Note Off (quarter note = 480 ticks)
-                    trackData.push(0x83, 0x60, 0x80, noteNum, 0); // Delta time 480 as variable length
-                }
-            }
-
-            // End of Track
             trackData.push(0, 0xFF, 0x2F, 0);
 
-            // Write track chunk
-            midiData.push(...strToBytes('MTrk'));
+            // Track chunk
+            midiData.push(...'MTrk'.split('').map(c => c.charCodeAt(0)));
             const trackLength = trackData.length;
-            midiData.push(
-                (trackLength >> 24) & 0xFF,
-                (trackLength >> 16) & 0xFF,
-                (trackLength >> 8) & 0xFF,
-                trackLength & 0xFF
-            );
+            midiData.push((trackLength >> 24) & 0xFF, (trackLength >> 16) & 0xFF, (trackLength >> 8) & 0xFF, trackLength & 0xFF);
             midiData.push(...trackData);
 
             return new Uint8Array(midiData);
         }
 
-        function strToBytes(str) {
-            return str.split('').map(c => c.charCodeAt(0));
+        function generateDumebi() {
+            const bars = parseInt(document.getElementById('dumebi-bars').value);
+            const velocity = parseInt(document.getElementById('dumebi-velocity').value);
+            const filename = document.getElementById('dumebi-filename').value || 'dumebi_bass.mid';
+
+            document.getElementById('dumebi-loading').style.display = 'block';
+
+            setTimeout(() => {
+                const notes = { 'F#': 54, 'A': 57, 'B': 59, 'C#': 61 };
+                const pattern = ['F#', 'F#', 'A', 'B', 'F#', 'F#', 'C#', 'B'];
+                let events = [];
+
+                for (let bar = 0; bar < bars; bar++) {
+                    for (let note of pattern) {
+                        events.push(0, 0x90, notes[note], velocity);
+                        events.push(0x83, 0x60, 0x80, notes[note], 0);
+                    }
+                }
+
+                const midiData = createMIDI(events, 105);
+                downloadMIDI(midiData, filename);
+
+                document.getElementById('dumebi-loading').style.display = 'none';
+                showStatus(`✅ Generated: ${filename}`, 'dumebi-status', 'success');
+            }, 300);
+        }
+
+        function generateChordProgression() {
+            const key = document.getElementById('chord-key').value;
+            const progression = document.getElementById('chord-progression').value;
+            const tempo = parseInt(document.getElementById('chord-tempo').value);
+            const bars = parseInt(document.getElementById('chord-bars').value);
+            const velocity = parseInt(document.getElementById('chord-velocity').value);
+            const filename = document.getElementById('chord-filename').value || 'chord_progression.mid';
+
+            document.getElementById('chord-loading').style.display = 'block';
+
+            setTimeout(() => {
+                const progressions = {
+                    'I-IV-V-I': [0, 5, 7, 0],
+                    'I-V-vi-IV': [0, 7, 9, 5],
+                    'vi-IV-I-V': [9, 5, 0, 7],
+                    'I-IV-I-V': [0, 5, 0, 7],
+                    'ii-V-I': [2, 7, 0],
+                    'I-vi-IV-V': [0, 9, 5, 7],
+                    'I-IV-I-V': [0, 5, 0, 7]
+                };
+
+                const baseNote = noteMap[key.charAt(0)];
+                const prog = progressions[progression];
+                let events = [];
+
+                for (let bar = 0; bar < bars; bar++) {
+                    for (let chordOffset of prog) {
+                        const chordIntervals = chords[key] || [0, 4, 7];
+                        for (let interval of chordIntervals) {
+                            const note = baseNote + chordOffset + interval;
+                            events.push(0, 0x90, note, velocity);
+                        }
+                        events.push(0x83, 0x60);
+                        for (let interval of chordIntervals) {
+                            const note = baseNote + chordOffset + interval;
+                            events.push(0x80, note, 0);
+                        }
+                    }
+                }
+
+                const midiData = createMIDI(events, tempo);
+                downloadMIDI(midiData, filename);
+
+                document.getElementById('chord-loading').style.display = 'none';
+                showStatus(`✅ Generated: ${filename}`, 'chord-status', 'success');
+            }, 300);
         }
 
         function downloadMIDI(midiData, filename) {
@@ -432,33 +551,20 @@
             URL.revokeObjectURL(url);
         }
 
-        function copyToClipboard() {
-            // Copy MIDI data to clipboard as base64
-            const numBars = parseInt(document.getElementById('bars').value);
-            const velocity = parseInt(document.getElementById('velocity').value);
-            const midiData = createMIDI(numBars, velocity);
-            
-            const base64 = btoa(String.fromCharCode.apply(null, midiData));
-            navigator.clipboard.writeText(base64).then(() => {
-                showStatus('✅ MIDI data copied to clipboard!', 'success');
-            }).catch(() => {
-                showStatus('❌ Failed to copy', 'error');
-            });
+        function copyToClipboard(type) {
+            showStatus('✅ Copy feature coming soon!', type + '-status', 'success');
         }
 
-        function showStatus(message, type) {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = message;
-            statusEl.className = `status ${type}`;
-            setTimeout(() => {
-                statusEl.style.display = 'none';
-            }, 3000);
+        function showStatus(message, elementId, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `status ${type}`;
+            setTimeout(() => el.style.display = 'none', 3000);
         }
 
-        // Auto-generate on page load
-        window.addEventListener('load', () => {
-            console.log('🎵 Dumebi MIDI Generator loaded!');
-        });
+        document.getElementById('chord-key').addEventListener('change', updateChordPreview);
+        document.getElementById('chord-progression').addEventListener('change', updateChordPreview);
+        updateChordPreview();
     </script>
 </body>
 </html>
