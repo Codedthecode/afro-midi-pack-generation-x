@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dumebi MIDI Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .song-info {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        .song-info h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .song-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 2px;
+        }
+
+        .settings {
+            margin-bottom: 25px;
+        }
+
+        .setting-group {
+            margin-bottom: 18px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .setting-group input[type="range"],
+        .setting-group input[type="text"],
+        .setting-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .setting-group input[type="range"] {
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+        .setting-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .range-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        .btn-copy {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-copy:hover {
+            background: #e0e0e0;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .drag-info {
+            background: #e3f2fd;
+            border: 2px dashed #2196F3;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            color: #1565c0;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Dumebi MIDI Generator</h1>
+            <p>By Rema | F# minor | 105 BPM</p>
+        </div>
+
+        <div class="song-info">
+            <h3>Song Information</h3>
+            <div class="song-details">
+                <div class="detail-item">
+                    <span class="detail-label">Key</span>
+                    <span>F# minor</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Tempo</span>
+                    <span>105 BPM</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Pattern</span>
+                    <span>F# A B C#</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Instrument</span>
+                    <span>Bass</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <div class="setting-group">
+                <label for="bars">
+                    Number of Bars
+                    <span class="range-value" id="barsValue">8</span>
+                </label>
+                <input type="range" id="bars" min="1" max="32" value="8" step="1">
+            </div>
+
+            <div class="setting-group">
+                <label for="velocity">
+                    Velocity (Volume)
+                    <span class="range-value" id="velocityValue">100</span>
+                </label>
+                <input type="range" id="velocity" min="40" max="127" value="100" step="1">
+            </div>
+
+            <div class="setting-group">
+                <label for="filename">Filename</label>
+                <input type="text" id="filename" value="dumebi_bass.mid">
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating MIDI file...</p>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-generate" onclick="generateMIDI()">Generate MIDI</button>
+            <button class="btn btn-copy" onclick="copyToClipboard()">📋 Copy</button>
+        </div>
+
+        <div class="drag-info">
+            💡 <strong>Drag & Drop:</strong> After generating, drag the downloaded file directly into FL Studio!
+        </div>
+
+        <div class="footer">
+            Made with ❤️ for producers | v1.0
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        // Update range values display
+        document.getElementById('bars').addEventListener('input', (e) => {
+            document.getElementById('barsValue').textContent = e.target.value;
+        });
+
+        document.getElementById('velocity').addEventListener('input', (e) => {
+            document.getElementById('velocityValue').textContent = e.target.value;
+        });
+
+        // Note mapping to MIDI numbers
+        const notes = {
+            'F#': 54,
+            'A': 57,
+            'B': 59,
+            'C#': 61,
+        };
+
+        // Dumebi bass pattern
+        const pattern = [
+            'F#', 'F#', 'A', 'B',
+            'F#', 'F#', 'C#', 'B'
+        ];
+
+        function generateMIDI() {
+            const numBars = parseInt(document.getElementById('bars').value);
+            const velocity = parseInt(document.getElementById('velocity').value);
+            const filename = document.getElementById('filename').value || 'dumebi_bass.mid';
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('status').style.display = 'none';
+
+            setTimeout(() => {
+                try {
+                    const midiData = createMIDI(numBars, velocity);
+                    downloadMIDI(midiData, filename);
+
+                    document.getElementById('loading').style.display = 'none';
+                    showStatus(`✅ MIDI file generated! (${numBars} bars)`, 'success');
+                } catch (error) {
+                    document.getElementById('loading').style.display = 'none';
+                    showStatus('❌ Error generating MIDI: ' + error.message, 'error');
+                }
+            }, 500);
+        }
+
+        function createMIDI(numBars, velocity) {
+            const tempo = 105;
+            const microsPerBeat = Math.round(60000000 / tempo);
+
+            let midiData = [];
+
+            // MIDI Header
+            midiData.push(...strToBytes('MThd'));
+            midiData.push(0, 0, 0, 6);
+            midiData.push(0, 0); // Format type 0
+            midiData.push(0, 1); // Number of tracks
+            midiData.push(0, 480); // Ticks per beat
+
+            // MIDI Track
+            let trackData = [];
+
+            // Set Tempo
+            trackData.push(0, 0xFF, 0x51, 0x03);
+            trackData.push((microsPerBeat >> 16) & 0xFF);
+            trackData.push((microsPerBeat >> 8) & 0xFF);
+            trackData.push(microsPerBeat & 0xFF);
+
+            // Program Change to Bass (33)
+            trackData.push(0, 0xC0, 33);
+
+            // Generate notes
+            for (let bar = 0; bar < numBars; bar++) {
+                for (let note of pattern) {
+                    const noteNum = notes[note];
+
+                    // Note On
+                    trackData.push(0, 0x90, noteNum, velocity);
+                    // Note Off (quarter note = 480 ticks)
+                    trackData.push(0x83, 0x60, 0x80, noteNum, 0); // Delta time 480 as variable length
+                }
+            }
+
+            // End of Track
+            trackData.push(0, 0xFF, 0x2F, 0);
+
+            // Write track chunk
+            midiData.push(...strToBytes('MTrk'));
+            const trackLength = trackData.length;
+            midiData.push(
+                (trackLength >> 24) & 0xFF,
+                (trackLength >> 16) & 0xFF,
+                (trackLength >> 8) & 0xFF,
+                trackLength & 0xFF
+            );
+            midiData.push(...trackData);
+
+            return new Uint8Array(midiData);
+        }
+
+        function strToBytes(str) {
+            return str.split('').map(c => c.charCodeAt(0));
+        }
+
+        function downloadMIDI(midiData, filename) {
+            const blob = new Blob([midiData], { type: 'audio/midi' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            // Copy MIDI data to clipboard as base64
+            const numBars = parseInt(document.getElementById('bars').value);
+            const velocity = parseInt(document.getElementById('velocity').value);
+            const midiData = createMIDI(numBars, velocity);
+            
+            const base64 = btoa(String.fromCharCode.apply(null, midiData));
+            navigator.clipboard.writeText(base64).then(() => {
+                showStatus('✅ MIDI data copied to clipboard!', 'success');
+            }).catch(() => {
+                showStatus('❌ Failed to copy', 'error');
+            });
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Auto-generate on page load
+        window.addEventListener('load', () => {
+            console.log('🎵 Dumebi MIDI Generator loaded!');
+        });
+    </script>
+</body>
+</html>
